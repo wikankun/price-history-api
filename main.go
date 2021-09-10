@@ -37,7 +37,7 @@ func main() {
 	})
 
 	handler := c.Handler(router)
-	log.Fatal(http.ListenAndServe(port, handler))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
 func initHandlers(router *mux.Router) {
