@@ -1,1 +1,1 @@
-web: price-history-api
+web: bin/price-history-api
