@@ -1,0 +1,1 @@
+web: price-history-api
