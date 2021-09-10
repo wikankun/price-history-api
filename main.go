@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/wikankun/price-history-api/controllers"
@@ -18,14 +17,16 @@ func main() {
 
 	config :=
 		database.Config{
-			Host:     os.Getenv("MYSQL_HOST"),
+			Host:     os.Getenv("DB_HOST"),
 			User:     os.Getenv("USERNAME"),
 			Password: os.Getenv("PASSWORD"),
 			Database: os.Getenv("DATABASE"),
+			Port:     os.Getenv("DB_PORT"),
 		}
 	port := os.Getenv("PORT")
 
 	initDB(config)
+	// migrations.Migrate()
 	log.Printf("Starting HTTP Server on port %s", port)
 	router := mux.NewRouter().StrictSlash(true)
 	initHandlers(router)
