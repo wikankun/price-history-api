@@ -49,6 +49,7 @@ func initHandlers(router *mux.Router) {
 	// router.HandleFunc("/delete/{id}", controllers.DeleteItemByID).Methods("DELETE")
 	router.HandleFunc("/price/{item_id}", controllers.GetPriceHistoryByID).Methods("GET")
 	router.HandleFunc("/price", controllers.CreatePriceHistory).Methods("POST")
+	router.HandleFunc("/price/{item_id}", controllers.UpdatePriceHistory).Methods("POST")
 }
 
 func initDB(config database.Config) {
