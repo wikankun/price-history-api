@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -10,8 +9,10 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/hibiken/asynq"
 	"github.com/wikankun/price-history-api/database"
 	"github.com/wikankun/price-history-api/entity"
+	"github.com/wikankun/price-history-api/tasks"
 )
 
 //GetPriceHistoryByID returns price history with specific ID
@@ -39,50 +40,24 @@ func CreatePriceHistory(w http.ResponseWriter, r *http.Request) {
 
 //UpdatePriceHistory updates price history
 func UpdatePriceHistory(w http.ResponseWriter, r *http.Request) {
-	type request struct {
-		Url string `json:"url"`
-	}
-
-	type response struct {
-		Name  string  `josn:"name"`
-		Price float32 `json:"price"`
-	}
-
 	// get id
 	vars := mux.Vars(r)
 	key, _ := strconv.Atoi(vars["item_id"])
 
-	// get item from database
-	var item entity.Item
-	database.Connector.First(&item, key)
+	client := asynq.NewClient(asynq.RedisClientOpt{Addr: os.Getenv("REDIS_HOST")})
+	defer client.Close()
 
-	// create request
-	req := request{
-		Url: item.Url,
-	}
-
-	jsonReq, err := json.Marshal(req)
-
-	// post to scrapper api
-	resp, err := http.Post(os.Getenv("SCRAPPER_HOST"), "application/json", bytes.NewBuffer(jsonReq))
+	t, err := tasks.NewPriceUpdateTask(key)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
-
-	// crate new Price History
-	var res response
-	json.Unmarshal(bodyBytes, &res)
-
-	price := entity.PriceHistory{
-		Item_ID: item.ID,
-		Price:   uint(res.Price),
+	info, err := client.Enqueue(t)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	database.Connector.Create(&price)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(price)
+	json.NewEncoder(w).Encode(info)
 }
