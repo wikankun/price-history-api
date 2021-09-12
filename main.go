@@ -10,6 +10,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/wikankun/price-history-api/controllers"
 	"github.com/wikankun/price-history-api/database"
+	"github.com/wikankun/price-history-api/migrations"
 )
 
 func main() {
@@ -26,7 +27,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	initDB(config)
-	// migrations.Migrate()
+	migrations.Migrate()
 	log.Printf("Starting HTTP Server on port %s", port)
 	router := mux.NewRouter().StrictSlash(true)
 	initHandlers(router)
