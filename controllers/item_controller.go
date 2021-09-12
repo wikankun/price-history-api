@@ -19,10 +19,10 @@ func GetAllItem(w http.ResponseWriter, r *http.Request) {
 
 	var items []entity.Item
 	if name == "" {
-		database.Connector.Find(&items)
+		database.Connector.Order("id").Find(&items)
 	} else {
 		query := fmt.Sprintf("%%%s%%", name)
-		database.Connector.Where("name LIKE ?", query).Find(&items)
+		database.Connector.Order("id").Where("name LIKE ?", query).Find(&items)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -57,8 +57,8 @@ func UpdateItemByID(w http.ResponseWriter, r *http.Request) {
 	requestBody, _ := ioutil.ReadAll(r.Body)
 	var item entity.Item
 	json.Unmarshal(requestBody, &item)
-	database.Connector.Save(&item)
 
+	database.Connector.Save(&item)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(item)
