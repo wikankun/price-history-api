@@ -21,7 +21,6 @@ func GetPriceHistoryByID(w http.ResponseWriter, r *http.Request) {
 
 	var prices []entity.PriceHistory
 	database.Connector.Order("id").Find(&prices, entity.PriceHistory{Item_ID: key})
-	log.Println(prices)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(prices)
 }
