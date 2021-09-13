@@ -45,7 +45,9 @@ func UpdatePriceHistory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key, _ := strconv.Atoi(vars["item_id"])
 
-	client := asynq.NewClient(asynq.RedisClientOpt{Addr: os.Getenv("REDIS_HOST")})
+	redisOpt, err := asynq.ParseRedisURI(os.Getenv("REDIS_URL"))
+
+	client := asynq.NewClient(redisOpt)
 	defer client.Close()
 
 	client.SetDefaultOptions(tasks.TypePriceUpdate, asynq.MaxRetry(2), asynq.Timeout(time.Minute))

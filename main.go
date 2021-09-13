@@ -76,8 +76,10 @@ func startServer() {
 }
 
 func startWorker() {
+	redisOpt, err := asynq.ParseRedisURI(os.Getenv("REDIS_URL"))
+
 	srv := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: os.Getenv("REDIS_HOST")},
+		redisOpt,
 		asynq.Config{Concurrency: 1},
 	)
 
@@ -87,7 +89,7 @@ func startWorker() {
 		tasks.HandlePriceUpdate, // handler function
 	)
 
-	err := srv.Run(mux)
+	err = srv.Run(mux)
 	if err != nil {
 		log.Fatal(err)
 	}
