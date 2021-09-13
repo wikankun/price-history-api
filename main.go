@@ -6,10 +6,13 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 	"github.com/wikankun/price-history-api/controllers"
 	"github.com/wikankun/price-history-api/database"
+	"github.com/wikankun/price-history-api/migrations"
+	"github.com/wikankun/price-history-api/tasks"
 )
 
 func main() {
@@ -23,22 +26,17 @@ func main() {
 			Database: os.Getenv("DATABASE"),
 			Port:     os.Getenv("DB_PORT"),
 		}
-	port := os.Getenv("PORT")
 
 	initDB(config)
-	// migrations.Migrate()
-	log.Printf("Starting HTTP Server on port %s", port)
-	router := mux.NewRouter().StrictSlash(true)
-	initHandlers(router)
 
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
-		AllowCredentials: true,
-		AllowedMethods:   []string{"GET", "POST", "PUT"},
-	})
-
-	handler := c.Handler(router)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	switch os.Args[1] {
+	case "server":
+		startServer()
+	case "worker":
+		startWorker()
+	case "migrate":
+		migrations.Migrate()
+	}
 }
 
 func initHandlers(router *mux.Router) {
@@ -57,5 +55,42 @@ func initDB(config database.Config) {
 	err := database.Connect(connectionString)
 	if err != nil {
 		panic(err.Error())
+	}
+}
+
+func startServer() {
+	port := os.Getenv("PORT")
+	log.Printf("Starting HTTP Server on port %s", port)
+
+	router := mux.NewRouter().StrictSlash(true)
+	initHandlers(router)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT"},
+	})
+
+	handler := c.Handler(router)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
+}
+
+func startWorker() {
+	redisOpt, err := asynq.ParseRedisURI(os.Getenv("REDIS_URL"))
+
+	srv := asynq.NewServer(
+		redisOpt,
+		asynq.Config{Concurrency: 1},
+	)
+
+	mux := asynq.NewServeMux()
+	mux.HandleFunc(
+		tasks.TypePriceUpdate,   // task type
+		tasks.HandlePriceUpdate, // handler function
+	)
+
+	err = srv.Run(mux)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
