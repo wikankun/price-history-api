@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/hibiken/asynq"
@@ -46,6 +47,8 @@ func UpdatePriceHistory(w http.ResponseWriter, r *http.Request) {
 
 	client := asynq.NewClient(asynq.RedisClientOpt{Addr: os.Getenv("REDIS_HOST")})
 	defer client.Close()
+
+	client.SetDefaultOptions(tasks.TypePriceUpdate, asynq.MaxRetry(2), asynq.Timeout(time.Minute))
 
 	t, err := tasks.NewPriceUpdateTask(key)
 	if err != nil {

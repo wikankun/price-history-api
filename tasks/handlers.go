@@ -31,7 +31,10 @@ func HandlePriceUpdate(ctx context.Context, t *asynq.Task) error {
 
 	// get item from database
 	var item entity.Item
-	database.Connector.First(&item, p.ItemID)
+	tx := database.Connector.First(&item, p.ItemID)
+	if tx.Error != nil {
+		return nil
+	}
 
 	// create request
 	req := request{
