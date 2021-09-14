@@ -64,8 +64,8 @@ func HandlePriceUpdate(ctx context.Context, t *asynq.Task) error {
 	json.Unmarshal(bodyBytes, &res)
 
 	price := entity.PriceHistory{
-		Item_ID: p.ItemID,
-		Price:   uint(res.Price),
+		ItemID: p.ItemID,
+		Price:  uint(res.Price),
 	}
 
 	database.Connector.Create(&price)
