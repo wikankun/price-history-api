@@ -6,23 +6,25 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/wikankun/price-history-api/database"
 	"github.com/wikankun/price-history-api/entity"
+	"github.com/wikankun/price-history-api/helpers"
 )
 
 //GetAllItem get all item data
 func GetAllItem(w http.ResponseWriter, r *http.Request) {
-	v := r.URL.Query()
-	name := v.Get("name")
+	name := r.URL.Query().Get("name")
 
 	var items []entity.Item
+	scopes := database.Connector.Scopes(helpers.Paginate(r))
 	if name == "" {
-		database.Connector.Order("id").Find(&items)
+		scopes.Order("id").Find(&items)
 	} else {
-		query := fmt.Sprintf("%%%s%%", name)
-		database.Connector.Order("id").Where("name LIKE ?", query).Find(&items)
+		query := fmt.Sprintf("%%%s%%", strings.ToLower(name))
+		scopes.Order("id").Where("LOWER(name) LIKE ?", query).Find(&items)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
