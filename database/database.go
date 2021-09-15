@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +17,7 @@ type Config struct {
 }
 
 var GetConnectionString = func(config Config) string {
-	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s", config.Host, config.User, config.Password, config.Database, config.Port)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", config.User, config.Password, config.Host, config.Port, config.Database)
 	return connectionString
 }
 
@@ -27,7 +27,7 @@ var Connector *gorm.DB
 //Connect creates MySQL connection
 func Connect(connectionString string) error {
 	var err error
-	Connector, err = gorm.Open(postgres.Open(connectionString), &gorm.Config{})
+	Connector, err = gorm.Open(mysql.Open(connectionString), &gorm.Config{})
 	if err != nil {
 		return err
 	}

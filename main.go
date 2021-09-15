@@ -18,6 +18,10 @@ import (
 func main() {
 	godotenv.Load()
 
+	if len(os.Args) < 2 {
+		log.Fatal("Arguments not found")
+	}
+
 	config :=
 		database.Config{
 			Host:     os.Getenv("DB_HOST"),
