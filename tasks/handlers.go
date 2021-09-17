@@ -13,9 +13,10 @@ import (
 	"github.com/wikankun/price-history-api/entity"
 )
 
+// HandlePriceUpdate to handle Price Update task
 func HandlePriceUpdate(ctx context.Context, t *asynq.Task) error {
 	type request struct {
-		Url string `json:"url"`
+		URL string `json:"url"`
 	}
 
 	type response struct {
@@ -38,7 +39,7 @@ func HandlePriceUpdate(ctx context.Context, t *asynq.Task) error {
 
 	// create request
 	req := request{
-		Url: item.Url,
+		URL: item.URL,
 	}
 
 	jsonReq, err := json.Marshal(req)

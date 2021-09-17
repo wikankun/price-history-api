@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Paginate query
 func Paginate(r *http.Request) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))

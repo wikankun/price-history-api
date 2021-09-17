@@ -2,6 +2,7 @@ package entity
 
 import "time"
 
+// PriceHistory struct
 type PriceHistory struct {
 	ID        int       `json:"id,primary_key"`
 	ItemID    int       `json:"item_id"`
